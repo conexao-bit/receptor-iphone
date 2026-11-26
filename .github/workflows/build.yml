@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: msys2/setup-msys2@v2
+        id: msys2
         with:
           msystem: UCRT64
           update: true
@@ -23,6 +24,11 @@ jobs:
         run: ./uxplay/build/uxplay.exe -v | grep "UxPlay version 1.74"
       - name: Testes das correcoes no UxPlay
         run: ./scripts/testar-uxplay.sh
+      - name: Montar o pacote
+        run: ./scripts/montar-pacote.sh
+      - name: Conferir que o pacote se basta
+        shell: pwsh
+        run: ./scripts/conferir-pacote.ps1 -Msys2 "${{ steps.msys2.outputs.msys2-location }}"
       - uses: actions/upload-artifact@v4
         with:
           name: uxplay

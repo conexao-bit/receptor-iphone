@@ -21,9 +21,10 @@ for p in $PLUGINS; do
 done
 
 # Dependencias, recursivas, so' as que vem do MSYS2 (as do Windows ficam).
+# Qualquer raiz do MSYS2: no CI ele fica em D:\a\_temp\msys64, nao em C:\msys64.
 for f in "$DESTINO/uxplay.exe" "$PLUGINS_DESTINO"/*.dll; do
   ntldd -R "$f"
-done | grep -ioE '[a-z]:[\\/]msys64[\\/]ucrt64[\\/]bin[\\/][^ ]+\.dll' | sort -fu |
+done | grep -ioE '[a-z]:[\\/][^ ]*[\\/]ucrt64[\\/]bin[\\/][^ ]+\.dll' | sort -fu |
   while read -r dll; do
     cp "$(cygpath -u "$dll")" "$DESTINO/"
   done
