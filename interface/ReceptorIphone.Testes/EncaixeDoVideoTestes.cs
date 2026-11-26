@@ -19,31 +19,33 @@ public class EncaixeDoVideoTestes
     [DllImport("user32.dll")] private static extern bool GetClientRect(IntPtr h, out Rect r);
     [StructLayout(LayoutKind.Sequential)] private struct Rect { public int L, T, R, B; }
 
-    /// <summary>Janela de topo com titulo e borda, como a do GStreamer, numa classe so' dela.</summary>
-    private static NativeWindow JanelaSolta()
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr CreateWindowExW(int ex, string classe, string titulo, int estilo,
+        int x, int y, int l, int a, IntPtr pai, IntPtr menu, IntPtr instancia, IntPtr param);
+    [DllImport("user32.dll")] private static extern bool DestroyWindow(IntPtr h);
+
+    /// <summary>
+    /// Janela de topo com titulo e borda, como a do GStreamer, na classe de
+    /// sistema STATIC (pela API direto: o NativeWindow do WinForms trocaria a
+    /// classe por uma dele, "WindowsForms10.STATIC...").
+    /// </summary>
+    private sealed class JanelaSolta : IDisposable
     {
-        var j = new NativeWindow();
-        j.CreateHandle(new CreateParams
-        {
-            ClassName = "STATIC",
-            Caption = "Direct3D11 renderer",
-            Style = unchecked((int)0x00CF0000), // WS_OVERLAPPEDWINDOW
-            Width = 300,
-            Height = 200,
-        });
-        return j;
+        public IntPtr Handle { get; } = CreateWindowExW(0, "STATIC", "Direct3D11 renderer",
+            0x00CF0000 /* WS_OVERLAPPEDWINDOW */, 0, 0, 300, 200, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+        public void Dispose() => DestroyWindow(Handle);
     }
 
     [Fact]
     public void ProcuraPeloProcessoEPelaClasse()
     {
-        var j = JanelaSolta();
-        try
+        using var j = new JanelaSolta();
+        Assert.NotEqual(IntPtr.Zero, j.Handle);
         {
             Assert.Equal(j.Handle, EncaixeDoVideo.Procurar(Environment.ProcessId, "Static"));
             Assert.Equal(IntPtr.Zero, EncaixeDoVideo.Procurar(Environment.ProcessId, EncaixeDoVideo.ClasseDoGStreamer));
         }
-        finally { j.DestroyHandle(); }
+
     }
 
     [Fact]
@@ -53,8 +55,8 @@ public class EncaixeDoVideoTestes
         var painel = new Panel { Dock = DockStyle.Fill };
         form.Controls.Add(painel);
         _ = form.Handle;
-        var j = JanelaSolta();
-        try
+        using var j = new JanelaSolta();
+        Assert.NotEqual(IntPtr.Zero, j.Handle);
         {
             EncaixeDoVideo.Encaixar(j.Handle, painel.Handle, painel.ClientSize);
 
@@ -65,7 +67,7 @@ public class EncaixeDoVideoTestes
             GetClientRect(j.Handle, out var r);
             Assert.Equal(painel.ClientSize, new Size(r.R - r.L, r.B - r.T));
         }
-        finally { j.DestroyHandle(); }
+
     }
 
     [Fact]
@@ -75,8 +77,8 @@ public class EncaixeDoVideoTestes
         var painel = new Panel { Dock = DockStyle.Fill };
         form.Controls.Add(painel);
         _ = form.Handle;
-        var j = JanelaSolta();
-        try
+        using var j = new JanelaSolta();
+        Assert.NotEqual(IntPtr.Zero, j.Handle);
         {
             EncaixeDoVideo.Encaixar(j.Handle, painel.Handle, painel.ClientSize);
             form.ClientSize = new Size(700, 400);
@@ -85,6 +87,6 @@ public class EncaixeDoVideoTestes
             GetClientRect(j.Handle, out var r);
             Assert.Equal(new Size(700, 400), new Size(r.R - r.L, r.B - r.T));
         }
-        finally { j.DestroyHandle(); }
+
     }
 }
