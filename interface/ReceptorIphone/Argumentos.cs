@@ -21,13 +21,13 @@ public static class Argumentos
         return string.Join(":", b.Select(x => x.ToString("x2", CultureInfo.InvariantCulture)));
     }
 
-    public static IReadOnlyList<string> Montar(string nome, string mac, long hwnd) =>
+    /// <summary>Sem -hwnd: a janela de video e' do uxplay e a interface a encaixa (EncaixeDoVideo).</summary>
+    public static IReadOnlyList<string> Montar(string nome, string mac) =>
     [
         "-n", nome, "-nh",
         "-pin",
         "-m", mac,
         "-as", "0",
         "-s", "1920x1920",
-        "-hwnd", hwnd.ToString(CultureInfo.InvariantCulture),
     ];
 }

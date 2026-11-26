@@ -25,6 +25,6 @@ public class ArgumentosTestes
     public void MontaOsArgumentos() =>
         Assert.Equal(
             new[] { "-n", "Conexão Tech (PC)", "-nh", "-pin", "-m", "02:00:00:00:00:01",
-                    "-as", "0", "-s", "1920x1920", "-hwnd", "12345" },
-            Argumentos.Montar("Conexão Tech (PC)", "02:00:00:00:00:01", 12345));
+                    "-as", "0", "-s", "1920x1920" },
+            Argumentos.Montar("Conexão Tech (PC)", "02:00:00:00:00:01"));
 }

@@ -2,8 +2,9 @@ namespace ReceptorIphone;
 
 /// <summary>
 /// A unica janela do receptor, do comeco ao fim: e' ela que a pessoa
-/// compartilha na chamada. O uxplay desenha o video no painel _video (-hwnd);
-/// por cima, enquanto nao ha' video, o passo a passo e o codigo. O iPhone
+/// compartilha na chamada. O uxplay cria a janela de video dele e ela e'
+/// encaixada no painel _video (EncaixeDoVideo); por cima, enquanto nao ha'
+/// video, o passo a passo e o codigo. O iPhone
 /// parar e voltar nao fecha a janela, entao o compartilhamento nao cai.
 /// </summary>
 public sealed class JanelaReceptor : Form
@@ -31,6 +32,11 @@ public sealed class JanelaReceptor : Form
     private ProcessoUxplay? _processo;
     private EstadoJanela _estado = new Esperando();
     private bool _parou;
+    private IntPtr _janelaDoVideo;
+
+    // O uxplay cria (e pode recriar) a janela de video a cada espelhamento:
+    // a procura repete enquanto ele roda e encaixa a que aparecer.
+    private readonly System.Windows.Forms.Timer _procura = new() { Interval = 200 };
 
     public JanelaReceptor()
     {
@@ -60,6 +66,12 @@ public sealed class JanelaReceptor : Form
         Controls.Add(_aviso);
         _aviso.BringToFront();
 
+        _procura.Tick += (_, _) => EncaixarVideo();
+        _video.Resize += (_, _) =>
+        {
+            if (EncaixeDoVideo.Encaixada(_janelaDoVideo, _video.Handle))
+                EncaixeDoVideo.Ajustar(_janelaDoVideo, _video.ClientSize);
+        };
         _ligar.Click += (_, _) => Ligar();
         Shown += (_, _) => Ligar();
         Mostrar();
@@ -99,19 +111,22 @@ public sealed class JanelaReceptor : Form
                 "Receptor iPhone", "registry.bin");
         }
 
-        var args = Argumentos.Montar(_nome, Argumentos.MacAleatorio(Random.Shared), _video.Handle.ToInt64());
+        var args = Argumentos.Montar(_nome, Argumentos.MacAleatorio(Random.Shared));
         var processo = new ProcessoUxplay(CaminhoDoUxplay(), args, ambiente);
         processo.AoEvento += e => NaJanela(() => Tratar(e));
         processo.AoSair += _ => NaJanela(() =>
         {
             if (!ReferenceEquals(processo, _processo)) return;
             _parou = true;
+            _procura.Stop();
             Mostrar();
         });
         _processo = processo;
+        _janelaDoVideo = IntPtr.Zero;
         try
         {
             processo.Iniciar();
+            _procura.Start();
         }
         catch (Exception)
         {
@@ -124,6 +139,16 @@ public sealed class JanelaReceptor : Form
     private static string CaminhoDoUxplay() =>
         Environment.GetEnvironmentVariable("RECEPTOR_UXPLAY")
         ?? Path.Combine(AppContext.BaseDirectory, "uxplay", "uxplay.exe");
+
+    private void EncaixarVideo()
+    {
+        if (_processo is not { Pid: > 0 } p) return;
+        if (EncaixeDoVideo.Encaixada(_janelaDoVideo, _video.Handle)) return;
+        var j = EncaixeDoVideo.Procurar(p.Pid, EncaixeDoVideo.ClasseDoGStreamer);
+        if (j == IntPtr.Zero) return;
+        EncaixeDoVideo.Encaixar(j, _video.Handle, _video.ClientSize);
+        _janelaDoVideo = j;
+    }
 
     private void NaJanela(Action a)
     {
@@ -182,6 +207,7 @@ public sealed class JanelaReceptor : Form
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
+        _procura.Stop();
         _processo?.Dispose();
         _processo = null;
         base.OnFormClosed(e);
