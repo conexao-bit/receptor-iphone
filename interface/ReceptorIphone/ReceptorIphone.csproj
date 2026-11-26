@@ -6,6 +6,17 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- LibraryImport (Job Object) gera codigo unsafe. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>ReceptorIphone</AssemblyName>
+    <Product>Receptor iPhone</Product>
+    <Company>Conexão Tech</Company>
+    <Version>0.1.0</Version>
+    <!-- Um .exe so', sem o runtime do .NET instalado na maquina. -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
 </Project>
