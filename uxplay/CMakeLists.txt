@@ -89,7 +89,13 @@ if  ( GST_MACOS )
      message ( STATUS "define GST_MACOS" )
 endif()
 
-add_executable( uxplay uxplay.cpp )
+if (WIN32)
+     # receptor-iphone: manifesto com activeCodePage UTF-8, para o argv (o
+     # nome com acento do -n) chegar em UTF-8 e nao na pagina de codigo ANSI.
+     add_executable( uxplay uxplay.cpp uxplay.rc )
+else()
+     add_executable( uxplay uxplay.cpp )
+endif()
 target_link_libraries( uxplay renderers airplay )
 if (DBUS_FOUND)
       target_link_libraries( uxplay ${DBUS_LIBRARY})

@@ -149,6 +149,8 @@ static bool render_coverart = false;
 static std::string coverart_filename = "";
 static std::string metadata_filename = "";
 static bool do_append_hostname = true;
+/* receptor-iphone: janela (HWND no Windows) onde o video e' desenhado; 0 = o GStreamer cria a sua */
+static uintptr_t external_window = 0;
 static bool use_random_hw_addr = false;
 static unsigned short display[5] = {0};
 static unsigned short tcp[3] = {0};
@@ -1107,6 +1109,7 @@ static void print_info (char *name) {
     printf("Options:\n");
     printf("-n name   Specify network name of the AirPlay server (UTF-8/ascii)\n");
     printf("-nh       Do not add \"@hostname\" at the end of AirPlay server name\n");
+    printf("-hwnd n   Render video into the existing window with handle n (decimal)\n");
     printf("-h265     Support h265 (4K) video (with h265 versions of h264 plugins)\n");
     printf("-mp4 [fn] Record (non-HLS)audio/video to mp4 file \"fn.[n].[format].mp4\"\n");
     printf("          n=1,2,.. format = H264/5, ALAC/AAC. Default fn=\"recording\"\n");
@@ -1645,6 +1648,15 @@ static void parse_arguments (int argc, char *argv[]) {
             }
         } else if (arg == "-nh") {
             do_append_hostname = false;
+        } else if (arg == "-hwnd") {
+            if (!option_has_value(i, argc, arg, argv[i+1])) exit(1);
+            char *fim = NULL;
+            unsigned long long h = strtoull(argv[++i], &fim, 10);
+            if (!fim || *fim != '\0' || h == 0) {
+                fprintf(stderr, "invalid \"-hwnd %s\": must be a nonzero decimal window handle\n", argv[i]);
+                exit(1);
+            }
+            external_window = (uintptr_t) h;
         } else if (arg == "-rpi") {
             std::string error_text =
                                 "    possible code values are:\n"
@@ -3477,6 +3489,9 @@ int main (int argc, char *argv[]) {
         read_config_file(config_file.c_str(), argv[0]);
     }
     parse_arguments (argc, argv);
+    if (external_window) {
+        video_renderer_set_window_handle(external_window);
+    }
 
 #if !defined(__APPLE__) || !defined(UXPLAY_HAVE_APPLE_P2P)
     if (peer_to_peer) {
