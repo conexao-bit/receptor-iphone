@@ -51,3 +51,16 @@ jobs:
           # Tag com hifen (v0.1.0-rc1) sai como pre-lancamento e nao vira a "latest".
           if ("${{ github.ref_name }}" -match "-") { $opcoes += "--prerelease" }
           gh release create @opcoes
+      # Depois da release do .exe: sem as variaveis do Partner Center, este passo
+      # falha com mensagem (o run fica vermelho) sem impedir o instalador.
+      - name: Pacote da Microsoft Store
+        shell: pwsh
+        run: |
+          $versao = ("${{ github.ref_name }}".TrimStart("v") -split "-")[0] + ".0"
+          ./scripts/montar-msix.ps1 -Identidade "${{ vars.RECEPTOR_IDENTIDADE }}" -Publicador "${{ vars.RECEPTOR_PUBLICADOR }}" -NomePublicador "${{ vars.RECEPTOR_NOME_PUBLICADOR }}" -Versao $versao
+      # MSIX sem assinatura nao instala fora da Store: vai como artefato do run,
+      # para enviar ao Partner Center, nao como arquivo da release.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: msix
+          path: dist/ReceptorDeTela.msix
