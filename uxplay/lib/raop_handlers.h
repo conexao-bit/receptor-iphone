@@ -652,7 +652,8 @@ raop_handler_authorize(raop_conn_t *conn, http_request_t *request,
             logger_log(raop->logger, LOGGER_INFO, "*** CLIENT MUST NOW ENTER PIN = \"%s\" AS AIRPLAY PASSWORD", raop->random_pw);
             raop->auth_fail_count++;
         }
-        if (len && !conn->authenticated) {
+        /* len = -2 (-pin): sem senha, o pareamento e' pelo PIN; nao entrar no Digest */
+        if ((len > 0 || len == -1) && !conn->authenticated) {
             if (len == -1) {
                 password = (const char *) raop->random_pw;
             }

@@ -40,8 +40,35 @@ function Testar([string]$decodificador) {
   Write-Output "ok: $decodificador decodificou H.264 (High) so' com o pacote"
 }
 
+# O proprio uxplay sobe so' com o pacote e fica de pe' (a checagem de plugins
+# dele roda na partida: em 2026-11-26 ele exigia o libav, que nao vai no pacote,
+# e saia na hora com o codigo 1).
+function TestarUxplay {
+  $inicio = New-Object System.Diagnostics.ProcessStartInfo (Join-Path $teste "uxplay.exe")
+  $inicio.UseShellExecute = $false
+  $inicio.RedirectStandardOutput = $true
+  $inicio.RedirectStandardError = $true
+  $inicio.Environment["PATH"] = "$teste;$env:SystemRoot\System32;$env:SystemRoot"
+  $inicio.Environment["GST_PLUGIN_SYSTEM_PATH"] = ""
+  $inicio.Environment["GST_PLUGIN_PATH"] = Join-Path $teste "lib\gstreamer-1.0"
+  $inicio.Environment["GST_REGISTRY"] = Join-Path $teste "registry.bin"
+  # Os mesmos argumentos da interface (Argumentos.Montar), sem o -hwnd.
+  $inicio.Arguments = '-n "Conferir pacote" -nh -pin -m 02:00:00:00:00:01 -as 0 -s 1920x1920'
+  $p = [System.Diagnostics.Process]::Start($inicio)
+  $saida = $p.StandardOutput.ReadToEndAsync()
+  $erros = $p.StandardError.ReadToEndAsync()
+  if ($p.WaitForExit(8000)) {
+    Write-Output $saida.Result $erros.Result
+    throw "o uxplay saiu sozinho com o pacote (saida $($p.ExitCode))"
+  }
+  $p.Kill()
+  $p.WaitForExit()
+  Write-Output "ok: o uxplay subiu so' com o pacote e ficou de pe' por 8 s"
+}
+
 # O caminho do uxplay (decodebin escolhe o de hardware se houver) e a reserva
 # por software, sozinha: maquina sem decodificacao por hardware (maquina virtual,
 # o CI) depende dela.
 Testar "decodebin"
 Testar "openh264dec"
+TestarUxplay
