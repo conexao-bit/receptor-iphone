@@ -176,7 +176,7 @@ public sealed class JanelaReceptor : Form
         if (_parou)
         {
             _titulo.Text = "O receptor parou.";
-            _texto.Text = "Clique para ligar de novo. Se continuar parando, feche e abra o Receptor iPhone.";
+            _texto.Text = "Clique para ligar de novo. Se continuar parando, feche e abra o Receptor de Tela Conexão Tech.";
             _codigo.Visible = false;
             _ligar.Visible = true;
             _aviso.Visible = true;
