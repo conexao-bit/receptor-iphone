@@ -71,8 +71,10 @@ static const char aac_eld_caps[] ="audio/mpeg,mpegversion=(int)4,channels=(int)2
 static gboolean check_plugins (void)
 {
     GstRegistry *registry = NULL;
-    const gchar *needed[] = { "app", "libav", "playback", "autodetect", "videoparsersbad",  NULL};
-    const gchar *gst[] = {"plugins-base", "libav", "plugins-base", "plugins-good", "plugins-bad", NULL};
+    /* Receptor iPhone: libav nao e' obrigatorio. O pacote roda com -as 0 (sem audio)
+     * e nao leva o libav (ffmpeg); sem avdec_aac/avdec_alac, audio_renderer_init so' avisa. */
+    const gchar *needed[] = { "app", "playback", "autodetect", "videoparsersbad",  NULL};
+    const gchar *gst[] = {"plugins-base", "plugins-base", "plugins-good", "plugins-bad", NULL};
     registry = gst_registry_get ();
     gboolean ret = TRUE;
     for (int i = 0; i < g_strv_length ((gchar **) needed); i++) {
