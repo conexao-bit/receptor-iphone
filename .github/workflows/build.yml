@@ -29,6 +29,18 @@ jobs:
       - name: Conferir que o pacote se basta
         shell: pwsh
         run: ./scripts/conferir-pacote.ps1 -Msys2 "${{ steps.msys2.outputs.msys2-location }}"
+      - name: Licencas
+        run: ./scripts/licencas.sh
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Publicar a interface
+        shell: pwsh
+        run: dotnet publish interface/ReceptorIphone -c Release -o dist/pacote
+      # Identidade de teste: aqui so' se confere que o pacote MSIX monta.
+      - name: Montar o MSIX (identidade de teste)
+        shell: pwsh
+        run: ./scripts/montar-msix.ps1 -Identidade "ConexaoTech.TesteDoCI" -Publicador "CN=00000000-0000-0000-0000-000000000000" -NomePublicador "Teste do CI" -Versao 0.0.1.0
       - uses: actions/upload-artifact@v4
         with:
           name: uxplay

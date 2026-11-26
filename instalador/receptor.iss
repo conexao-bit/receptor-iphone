@@ -8,7 +8,7 @@
 
 [Setup]
 AppId={{7B0D6F1A-4C2E-4B8B-9E36-0C5A2B7E1F42}
-AppName=Receptor iPhone
+AppName=Receptor de Tela Conexão Tech
 AppVersion={#Versao}
 AppPublisher=Conexão Tech
 AppPublisherURL=https://github.com/conexao-bit/receptor-iphone
@@ -24,7 +24,7 @@ SolidCompression=yes
 WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-UninstallDisplayName=Receptor iPhone
+UninstallDisplayName=Receptor de Tela Conexão Tech
 UninstallDisplayIcon={app}\ReceptorIphone.exe
 LicenseFile=..\LICENSE
 
@@ -37,10 +37,15 @@ Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"
 Source: "..\THIRD_PARTY.md"; DestDir: "{app}"
 
 [Icons]
-Name: "{userprograms}\Receptor iPhone"; Filename: "{app}\ReceptorIphone.exe"
+Name: "{userprograms}\Receptor de Tela Conexão Tech"; Filename: "{app}\ReceptorIphone.exe"
 
 [Run]
-Filename: "{app}\ReceptorIphone.exe"; Description: "Abrir o Receptor iPhone"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\ReceptorIphone.exe"; Description: "Abrir o Receptor de Tela Conexão Tech"; Flags: nowait postinstall skipifsilent
+
+[InstallDelete]
+; Atalho com o nome antigo (ate' a v0.1.0-rc2). As pastas ficam com o nome
+; antigo de proposito: atualizar por cima continua no mesmo lugar.
+Type: files; Name: "{userprograms}\Receptor iPhone.lnk"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\Receptor iPhone"
