@@ -21,6 +21,8 @@ jobs:
         run: ./scripts/compilar-uxplay.sh
       - name: Conferir a versao
         run: ./uxplay/build/uxplay.exe -v | grep "UxPlay version 1.74"
+      - name: Testes das correcoes no UxPlay
+        run: ./scripts/testar-uxplay.sh
       - uses: actions/upload-artifact@v4
         with:
           name: uxplay
