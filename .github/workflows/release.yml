@@ -1,0 +1,53 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  instalador:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        id: msys2
+        with:
+          msystem: UCRT64
+          update: true
+      - name: Compilar o uxplay e montar o pacote
+        shell: msys2 {0}
+        run: |
+          ./scripts/compilar-uxplay.sh
+          ./scripts/montar-pacote.sh
+          ./scripts/licencas.sh
+      - name: Conferir que o pacote se basta
+        shell: pwsh
+        run: ./scripts/conferir-pacote.ps1 -Msys2 "${{ steps.msys2.outputs.msys2-location }}"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Testar e publicar a interface
+        shell: pwsh
+        run: |
+          dotnet test interface
+          dotnet publish interface/ReceptorIphone -c Release -o dist/pacote
+      - name: Instalador
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          $versao = "${{ github.ref_name }}".TrimStart("v")
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe" "/DVersao=$versao" instalador\receptor.iss
+      - name: Publicar a release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $opcoes = @("${{ github.ref_name }}", "dist/ReceptorIphone-Instalador.exe",
+            "--title", "Receptor iPhone ${{ github.ref_name }}",
+            "--notes", "Instalador por usuário (não pede administrador). Código-fonte deste repositório, GPLv3; componentes de terceiros em THIRD_PARTY.md.")
+          # Tag com hifen (v0.1.0-rc1) sai como pre-lancamento e nao vira a "latest".
+          if ("${{ github.ref_name }}" -match "-") { $opcoes += "--prerelease" }
+          gh release create @opcoes
