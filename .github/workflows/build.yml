@@ -1,0 +1,27 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  uxplay:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+      - name: Compilar o uxplay
+        run: ./scripts/compilar-uxplay.sh
+      - name: Conferir a versao
+        run: ./uxplay/build/uxplay.exe -v | grep "UxPlay version 1.74"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uxplay
+          path: uxplay/build/uxplay.exe

@@ -1,0 +1,6 @@
+uxplay/build/
+dist/
+bin/
+obj/
+*.user
+.vs/
