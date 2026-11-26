@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ReceptorIphone.Testes/ReceptorIphone.Testes.csproj" />
+  <Project Path="ReceptorIphone/ReceptorIphone.csproj" />
+</Solution>
