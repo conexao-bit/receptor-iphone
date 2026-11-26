@@ -245,6 +245,9 @@ char *get_token(char **cursor, char *token_name, char start_char, char end_char)
 bool
 pairing_digest_verify(const char *method, const char * authorization, const char *password) {
   /* RFC 2617 HTTP md5 Digest password authentication */
+    if (!authorization || !password || !method) {
+        return false;
+    }
     size_t authlen = strlen(authorization);
     char *sentence = (char *) malloc(authlen + 1);
     if (!sentence) {
@@ -297,6 +300,10 @@ pairing_digest_verify(const char *method, const char * authorization, const char
         cnonce = get_token(&cursor, "cnonce", '\"', '\"');
     }
     response = get_token(&cursor, "response", '\"', '\"');
+    if (!username || !realm || !nonce || !uri || !response || (qop && (!nc || !cnonce))) {
+        free(sentence);
+        return false;
+    }
 
 #ifdef test_digest
     printf("username: [%s]  realm: [%s]\n", username, realm);
